@@ -11,6 +11,9 @@ importers:
 
   .:
     dependencies:
+      '@clickhouse/client':
+        specifier: ^1.18.3
+        version: 1.18.3
       '@mkven/samples-generation':
         specifier: ^0.5.1
         version: 0.5.1
