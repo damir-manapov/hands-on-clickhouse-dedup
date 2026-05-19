@@ -6,6 +6,7 @@
  *   pnpm bench
  *   pnpm bench --host localhost --port 8123 --database dedup
  */
+import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
@@ -84,7 +85,13 @@ async function main(): Promise<void> {
       .replace("T", " ")
       .replace(/\.\d+Z$/, "");
 
-    const results: Array<{ n: number; label: string; rows: number; durationMs: number }> = [];
+    const results: Array<{
+      n: number;
+      label: string;
+      rows: number;
+      durationMs: number;
+      queryId: string;
+    }> = [];
 
     for (const { n, label, sql } of queries) {
       process.stdout.write(`Case ${n}: ${label} ... `);
@@ -95,9 +102,11 @@ async function main(): Promise<void> {
       await client.command({ query: "SYSTEM DROP UNCOMPRESSED CACHE" });
 
       const t0 = performance.now();
+      const queryId = `bench-${n}-${randomUUID()}`;
 
       const result = await client.query({
         query: sql,
+        query_id: queryId,
         format: "JSONEachRow",
         clickhouse_settings: {
           // Force disk spill so large self-joins don't OOM at 100M+ rows.
@@ -112,46 +121,43 @@ async function main(): Promise<void> {
 
       const wallMs = Math.round(performance.now() - t0);
       process.stdout.write(`${rows.length} rows, ${formatDuration(wallMs)} (wall)\n`);
-      results.push({ n, label, rows: rows.length, durationMs: wallMs });
+      results.push({ n, label, rows: rows.length, durationMs: wallMs, queryId });
     }
 
     // Also pull server-side duration from query_log (more accurate than wall clock).
     await client.command({ query: "SYSTEM FLUSH LOGS" });
 
+    const queryIds = results.map((r) => `'${r.queryId}'`).join(",");
     const logResult = await client.query({
       query: `
         SELECT
-          query,
+          query_id,
           read_rows,
           round(query_duration_ms) AS query_duration_ms,
           round(memory_usage / 1048576) AS memory_mb
         FROM system.query_log
         WHERE type = 'QueryFinish'
           AND event_time >= '${benchStart}'
-          AND query NOT LIKE '%system.query_log%'
-          AND query NOT LIKE '%SYSTEM %'
-          AND query LIKE '%passengers%'
-        ORDER BY event_time
+          AND query_id IN (${queryIds})
       `,
       format: "JSONEachRow",
     });
 
     type LogRow = {
-      query: string;
+      query_id: string;
       read_rows: number;
       query_duration_ms: number;
       memory_mb: number;
     };
     const logRows = (await logResult.json()) as LogRow[];
+    const logByQueryId = new Map(logRows.map((row) => [row.query_id, row]));
 
     console.log("\n=== Summary (server-side timings from system.query_log) ===\n");
     console.log("Case  Duration     Rows(out)  ReadRows(scan)  Memory(MB)  Label");
     console.log("-".repeat(80));
 
-    for (let i = 0; i < results.length; i++) {
-      const r = results[i];
-      if (!r) continue;
-      const log = logRows[i];
+    for (const r of results) {
+      const log = logByQueryId.get(r.queryId);
       const dur = log ? formatDuration(log.query_duration_ms).padStart(11) : "          ?";
       const readRows = log ? String(log.read_rows.toLocaleString()).padStart(14) : "             ?";
       const mem = log ? String(log.memory_mb).padStart(10) : "         ?";
