@@ -18,8 +18,8 @@ importers:
         specifier: ^0.2.0
         version: 0.2.0
       '@mkven/samples-generation':
-        specifier: ^0.5.1
-        version: 0.5.1
+        specifier: ^0.5.2
+        version: 0.5.2
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.3.15
@@ -102,8 +102,15 @@ packages:
   '@clickhouse/client-common@1.18.3':
     resolution: {integrity: sha512-3axzO3zvrsGT5PzDenxgWscltYCNRDbhaHWUgdsmcM9OnW/VnZn9EarOcZogr9P82Z0mQh+Jd2x+p2K4TFD2fA==}
 
+  '@clickhouse/client-common@1.18.5':
+    resolution: {integrity: sha512-g9LwcS1dvkatKDsIjT1PwUHldsiYzwdKAB0nXfd9APLd+t4PrNJa+my+dXcqJdmcWyhWjKLP/2/ztBwgxp+sbQ==}
+
   '@clickhouse/client@1.18.3':
     resolution: {integrity: sha512-340ngdYktL8PLUBK2QKSwe0o02tYfZSz1mSn1uXCEU8TxHvwh9pnQxElf9YHumDGj5gX/IdgxPsJTGMs82Hgug==}
+    engines: {node: '>=16'}
+
+  '@clickhouse/client@1.18.5':
+    resolution: {integrity: sha512-4FfoyMkFWhsdNMuXsoEL6l3c12svA63BBJBtDo9SrxRZ14RdmN6jLr/rF3f84BK8cFoxETZCSeKlsbk6NNYebw==}
     engines: {node: '>=16'}
 
   '@emnapi/core@1.10.0':
@@ -274,16 +281,12 @@ packages:
   '@jridgewell/sourcemap-codec@1.5.5':
     resolution: {integrity: sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og==}
 
-  '@mkven/name-dictionaries@0.1.0':
-    resolution: {integrity: sha512-l2AjFQpRNcOoog7rpuUcbBGP9Crtt6Kvnl+Bhforf8SehyctENoqM0pewNW91TJ6MAynN9kvUigEqEn2oxhfRg==}
-    engines: {node: '>=18'}
-
   '@mkven/name-dictionaries@0.2.0':
     resolution: {integrity: sha512-nKjJG04SL8d8nx82lq/AmXPcgdOUPW7nJKMocqhGeX6w/zAuxI92a4l3yjRWV6t6aME3dUJtiVgeTDfOeIq3Uw==}
     engines: {node: '>=18'}
 
-  '@mkven/samples-generation@0.5.1':
-    resolution: {integrity: sha512-+O0QbiH6TE63MT8qINnYHvdZI22iqI2sWFldjC/65C4BGIfrJJpCwplAxoSEgxiS9uiPGrMaC+UNolxE0fak1A==}
+  '@mkven/samples-generation@0.5.2':
+    resolution: {integrity: sha512-dUH6LUuVh9E9A5yycGeRQGwuTX7cHY1GFR90TfL0FEwkpPaELaw8bzsjO9pMctIb3vcS4ploMEVBBNgKMCHhhA==}
     hasBin: true
 
   '@napi-rs/wasm-runtime@1.1.4':
@@ -453,9 +456,9 @@ packages:
   base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
 
-  better-sqlite3@12.9.0:
-    resolution: {integrity: sha512-wqUv4Gm3toFpHDQmaKD4QhZm3g1DjUBI0yzS4UBl6lElUmXFYdTQmmEDpAFa5o8FiFiymURypEnfVHzILKaxqQ==}
-    engines: {node: 20.x || 22.x || 23.x || 24.x || 25.x}
+  better-sqlite3@12.10.0:
+    resolution: {integrity: sha512-CyzaZRQKyHkB2ZInfTTl2nvT33EbDpjkLEbE8/Zck3Ll6O0qqvuGdrJ45HgtH+HykRg88ITY3AdreBGN70aBSQ==}
+    engines: {node: 20.x || 22.x || 23.x || 24.x || 25.x || 26.x}
 
   bindings@1.5.0:
     resolution: {integrity: sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ==}
@@ -1001,9 +1004,15 @@ snapshots:
 
   '@clickhouse/client-common@1.18.3': {}
 
+  '@clickhouse/client-common@1.18.5': {}
+
   '@clickhouse/client@1.18.3':
     dependencies:
       '@clickhouse/client-common': 1.18.3
+
+  '@clickhouse/client@1.18.5':
+    dependencies:
+      '@clickhouse/client-common': 1.18.5
 
   '@emnapi/core@1.10.0':
     dependencies:
@@ -1101,15 +1110,13 @@ snapshots:
 
   '@jridgewell/sourcemap-codec@1.5.5': {}
 
-  '@mkven/name-dictionaries@0.1.0': {}
-
   '@mkven/name-dictionaries@0.2.0': {}
 
-  '@mkven/samples-generation@0.5.1':
+  '@mkven/samples-generation@0.5.2':
     dependencies:
-      '@clickhouse/client': 1.18.3
-      '@mkven/name-dictionaries': 0.1.0
-      better-sqlite3: 12.9.0
+      '@clickhouse/client': 1.18.5
+      '@mkven/name-dictionaries': 0.2.0
+      better-sqlite3: 12.10.0
       pg-format: 1.0.4
       postgres: 3.4.9
       trino-client: 0.2.9
@@ -1251,7 +1258,7 @@ snapshots:
 
   base64-js@1.5.1: {}
 
-  better-sqlite3@12.9.0:
+  better-sqlite3@12.10.0:
     dependencies:
       bindings: 1.5.0
       prebuild-install: 7.1.3
