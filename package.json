@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@clickhouse/client": "^1.18.3",
+    "@mkven/name-dictionaries": "^0.2.0",
     "@mkven/samples-generation": "^0.5.1"
   },
   "devDependencies": {

@@ -14,6 +14,9 @@ importers:
       '@clickhouse/client':
         specifier: ^1.18.3
         version: 1.18.3
+      '@mkven/name-dictionaries':
+        specifier: ^0.2.0
+        version: 0.2.0
       '@mkven/samples-generation':
         specifier: ^0.5.1
         version: 0.5.1
@@ -273,6 +276,10 @@ packages:
 
   '@mkven/name-dictionaries@0.1.0':
     resolution: {integrity: sha512-l2AjFQpRNcOoog7rpuUcbBGP9Crtt6Kvnl+Bhforf8SehyctENoqM0pewNW91TJ6MAynN9kvUigEqEn2oxhfRg==}
+    engines: {node: '>=18'}
+
+  '@mkven/name-dictionaries@0.2.0':
+    resolution: {integrity: sha512-nKjJG04SL8d8nx82lq/AmXPcgdOUPW7nJKMocqhGeX6w/zAuxI92a4l3yjRWV6t6aME3dUJtiVgeTDfOeIq3Uw==}
     engines: {node: '>=18'}
 
   '@mkven/samples-generation@0.5.1':
@@ -1095,6 +1102,8 @@ snapshots:
   '@jridgewell/sourcemap-codec@1.5.5': {}
 
   '@mkven/name-dictionaries@0.1.0': {}
+
+  '@mkven/name-dictionaries@0.2.0': {}
 
   '@mkven/samples-generation@0.5.1':
     dependencies:

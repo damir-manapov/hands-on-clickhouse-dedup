@@ -1,110 +1,36 @@
 /**
- * Generate noisy passenger data into ClickHouse using @mkven/samples-generation.
+ * Generate realistic passenger data into ClickHouse using @mkven/samples-generation.
+ *
+ * Uses real Russian name dictionaries (@mkven/name-dictionaries) for high-cardinality
+ * firstname/lastname/patronymic fields, and applies a low-probability `mutate`
+ * transformation to introduce realistic typos for dedup testing.
  *
  * Usage:
  *   pnpm generate --rows 100000 --drop
  *   pnpm generate --host localhost --port 8123 --database dedup --user default --password clickhouse
  */
 import { parseArgs } from "node:util";
+import {
+  getRussianFemaleNames,
+  getRussianMaleNames,
+  getRussianMaleSurnames,
+  getRussianPatronymics,
+} from "@mkven/name-dictionaries";
 import { ClickHouseDataGenerator, formatDuration, type Scenario } from "@mkven/samples-generation";
 
 const DEFAULT_ROWS = 100_000;
 
-const FIRST_NAMES = [
-  "Ivan",
-  "Ivon", // !
-  "Petr",
-  "Petar", // !
-  "Sergey",
-  "Alexey",
-  "Alexeys", // !
-  "Nikolay",
-  "Dmitry",
-  "Andrey",
-  "Mikhail",
-  "Egor",
-  "Egors", // !
-  "Egar", // !
-  "Egoraa", // !
-  "Kirill",
-  "Anna",
-  "Maria",
-  "Elena",
-  "Olga",
-  "Olga1", // !
-  "Olga11", // !
-  "Olga111", // !
-  "Natalia",
-  "Irina",
-  "Tatiana",
-  "Svetlana",
-  "Ekaterina",
-  "Polina",
-];
+// ~3,356 male + ~1,434 female = ~4,790 first names in Cyrillic
+const FIRST_NAMES: string[] = [...getRussianMaleNames(), ...getRussianFemaleNames()];
 
-const LAST_NAMES = [
-  "Ivanov",
-  "Ivanov1", // !
-  "Ivano1", // !
-  "Ivano", // !
-  "Petrov",
-  "Sidorov",
-  "Smirnov",
-  "Kuznetsov",
-  "Volkov",
-  "Sokolov",
-  "Popov",
-  "Lebedev",
-  "Kozlov",
-  "Ivanova",
-  "Petrova",
-  "Sidorova",
-  "Smirnova",
-  "Kuznetsova",
-  "Volkova",
-  "Sokolova",
-  "Popova",
-  "Lebedeva",
-  "Kozlova",
-  "Kozlova1", // !
-  "Kozlova11", // !
-  "Kozlova111", // !
-  "Kozlova1111", // !
-  "Kozlova11111", // !
-  "Kozlova111111", // !
-  "Kozlova1111111", // !
-];
+// ~34,803 surnames (male forms, includes ~10,832 unisex) in Cyrillic
+const LAST_NAMES: string[] = getRussianMaleSurnames();
 
-const PATRONYMICS = [
-  "Ivanovich",
-  "Ivanovich1", // !
-  "Ivanovich11", // !
-  "Ivanovich111", // !
-  "Ivano1", // !
-  "Ivano", // !
-  "Petrovich",
-  "Sergeevich",
-  "Alexeevich",
-  "Nikolaevich",
-  "Dmitrievich",
-  "Andreevich",
-  "Mikhailovich",
-  "Egorovich",
-  "Kirillovich",
-  "Ivanovna",
-  "Petrovna",
-  "Sergeevna",
-  "Alexeevna",
-  "Nikolaevna",
-  "Dmitrievna",
-  "Andreevna",
-  "Mikhailovna",
-  "Egorovna",
-  "Kirillovna",
-  "Ivanovna1", // !
-  "Ivanovna11", // !
-  "Ivanovna111", // !
-];
+// Patronymics derived from male first names (both genders), provided by
+// @mkven/name-dictionaries — handles classic exceptions (Илья, Лука, Кузьма,
+// Никита, ...) and -а/-я endings correctly.
+const { male: MALE_PATRONYMICS, female: FEMALE_PATRONYMICS } = getRussianPatronymics();
+const PATRONYMICS: string[] = [...MALE_PATRONYMICS, ...FEMALE_PATRONYMICS];
 
 const DOCUMENT_TYPES = [
   "passport",
@@ -206,9 +132,11 @@ function createScenario(rowCount: number): Scenario {
               generator: { kind: "choice", values: DOCUMENT_TYPES },
             },
             {
+              // 10-char string mimics Russian passport format (4-digit series + 6-digit number).
+              // High cardinality avoids false-positive docNumber collisions at large row counts.
               name: "docNumber",
               type: "string",
-              generator: { kind: "randomString", length: 3 },
+              generator: { kind: "randomString", length: 5 },
             },
           ],
         },
