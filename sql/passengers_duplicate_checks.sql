@@ -180,93 +180,93 @@ ORDER BY total_possible_duplicates DESC, lastname, patronymic, firstname_variant
 
 -- 6) Потенциальные дубликаты с 1 ошибкой на все поля ФИО суммарно
 -- Условие: levenshtein(firstname)+levenshtein(lastname)+levenshtein(patronymic) = 1
--- ВНИМАНИЕ: O(N²) по уникальным ФИО — медленно на больших объёмах.
-WITH names_agg AS (
-    SELECT
-        firstname,
-        lastname,
-        patronymic,
-        count() AS records_count
-    FROM passengers
-    GROUP BY
-        firstname,
-        lastname,
-        patronymic
-)
-SELECT
-    a.firstname AS firstname_variant_1,
-    a.lastname AS lastname_variant_1,
-    a.patronymic AS patronymic_variant_1,
-    b.firstname AS firstname_variant_2,
-    b.lastname AS lastname_variant_2,
-    b.patronymic AS patronymic_variant_2,
-    levenshteinDistanceUTF8(a.firstname, b.firstname) AS firstname_distance,
-    levenshteinDistanceUTF8(a.lastname, b.lastname) AS lastname_distance,
-    levenshteinDistanceUTF8(a.patronymic, b.patronymic) AS patronymic_distance,
-    (
-        levenshteinDistanceUTF8(a.firstname, b.firstname)
-      + levenshteinDistanceUTF8(a.lastname, b.lastname)
-      + levenshteinDistanceUTF8(a.patronymic, b.patronymic)
-    ) AS total_distance,
-    a.records_count AS variant_1_count,
-    b.records_count AS variant_2_count,
-    a.records_count + b.records_count AS total_possible_duplicates
-FROM names_agg AS a
-CROSS JOIN names_agg AS b
-WHERE (a.lastname, a.firstname, a.patronymic) < (b.lastname, b.firstname, b.patronymic)
-  AND (
-        levenshteinDistanceUTF8(a.firstname, b.firstname)
-      + levenshteinDistanceUTF8(a.lastname, b.lastname)
-      + levenshteinDistanceUTF8(a.patronymic, b.patronymic)
-      ) = 1
-ORDER BY total_possible_duplicates DESC, total_distance, lastname_variant_1, firstname_variant_1, patronymic_variant_1;
+-- ВНИМАНИЕ: O(N²) по уникальным ФИО — медленно на больших объёмах. Отключено в bench.
+-- WITH names_agg AS (
+--     SELECT
+--         firstname,
+--         lastname,
+--         patronymic,
+--         count() AS records_count
+--     FROM passengers
+--     GROUP BY
+--         firstname,
+--         lastname,
+--         patronymic
+-- )
+-- SELECT
+--     a.firstname AS firstname_variant_1,
+--     a.lastname AS lastname_variant_1,
+--     a.patronymic AS patronymic_variant_1,
+--     b.firstname AS firstname_variant_2,
+--     b.lastname AS lastname_variant_2,
+--     b.patronymic AS patronymic_variant_2,
+--     levenshteinDistanceUTF8(a.firstname, b.firstname) AS firstname_distance,
+--     levenshteinDistanceUTF8(a.lastname, b.lastname) AS lastname_distance,
+--     levenshteinDistanceUTF8(a.patronymic, b.patronymic) AS patronymic_distance,
+--     (
+--         levenshteinDistanceUTF8(a.firstname, b.firstname)
+--       + levenshteinDistanceUTF8(a.lastname, b.lastname)
+--       + levenshteinDistanceUTF8(a.patronymic, b.patronymic)
+--     ) AS total_distance,
+--     a.records_count AS variant_1_count,
+--     b.records_count AS variant_2_count,
+--     a.records_count + b.records_count AS total_possible_duplicates
+-- FROM names_agg AS a
+-- CROSS JOIN names_agg AS b
+-- WHERE (a.lastname, a.firstname, a.patronymic) < (b.lastname, b.firstname, b.patronymic)
+--   AND (
+--         levenshteinDistanceUTF8(a.firstname, b.firstname)
+--       + levenshteinDistanceUTF8(a.lastname, b.lastname)
+--       + levenshteinDistanceUTF8(a.patronymic, b.patronymic)
+--       ) = 1
+-- ORDER BY total_possible_duplicates DESC, total_distance, lastname_variant_1, firstname_variant_1, patronymic_variant_1;
 
 -- 7) Потенциальные дубликаты: возможна 1 ошибка в каждом поле ФИО
 -- Условие: в firstname/lastname/patronymic расстояние Левенштейна <= 1,
 --          и хотя бы одно поле отличается
--- ВНИМАНИЕ: O(N²) по уникальным ФИО — медленно на больших объёмах.
-WITH names_agg AS (
-    SELECT
-        firstname,
-        lastname,
-        patronymic,
-        count() AS records_count
-    FROM passengers
-    GROUP BY
-        firstname,
-        lastname,
-        patronymic
-)
-SELECT
-    a.firstname AS firstname_variant_1,
-    a.lastname AS lastname_variant_1,
-    a.patronymic AS patronymic_variant_1,
-    b.firstname AS firstname_variant_2,
-    b.lastname AS lastname_variant_2,
-    b.patronymic AS patronymic_variant_2,
-    levenshteinDistanceUTF8(a.firstname, b.firstname) AS firstname_distance,
-    levenshteinDistanceUTF8(a.lastname, b.lastname) AS lastname_distance,
-    levenshteinDistanceUTF8(a.patronymic, b.patronymic) AS patronymic_distance,
-    (
-        levenshteinDistanceUTF8(a.firstname, b.firstname)
-      + levenshteinDistanceUTF8(a.lastname, b.lastname)
-      + levenshteinDistanceUTF8(a.patronymic, b.patronymic)
-    ) AS total_distance,
-    a.records_count AS variant_1_count,
-    b.records_count AS variant_2_count,
-    a.records_count + b.records_count AS total_possible_duplicates
-FROM names_agg AS a
-CROSS JOIN names_agg AS b
-WHERE (a.lastname, a.firstname, a.patronymic) < (b.lastname, b.firstname, b.patronymic)
-  AND levenshteinDistanceUTF8(a.firstname, b.firstname) <= 1
-  AND levenshteinDistanceUTF8(a.lastname, b.lastname) <= 1
-  AND levenshteinDistanceUTF8(a.patronymic, b.patronymic) <= 1
-  AND (
-      levenshteinDistanceUTF8(a.firstname, b.firstname)
-    + levenshteinDistanceUTF8(a.lastname, b.lastname)
-    + levenshteinDistanceUTF8(a.patronymic, b.patronymic)
-  ) > 0
-ORDER BY total_possible_duplicates DESC, total_distance, lastname_variant_1, firstname_variant_1, patronymic_variant_1;
+-- ВНИМАНИЕ: O(N²) по уникальным ФИО — медленно на больших объёмах. Отключено в bench.
+-- WITH names_agg AS (
+--     SELECT
+--         firstname,
+--         lastname,
+--         patronymic,
+--         count() AS records_count
+--     FROM passengers
+--     GROUP BY
+--         firstname,
+--         lastname,
+--         patronymic
+-- )
+-- SELECT
+--     a.firstname AS firstname_variant_1,
+--     a.lastname AS lastname_variant_1,
+--     a.patronymic AS patronymic_variant_1,
+--     b.firstname AS firstname_variant_2,
+--     b.lastname AS lastname_variant_2,
+--     b.patronymic AS patronymic_variant_2,
+--     levenshteinDistanceUTF8(a.firstname, b.firstname) AS firstname_distance,
+--     levenshteinDistanceUTF8(a.lastname, b.lastname) AS lastname_distance,
+--     levenshteinDistanceUTF8(a.patronymic, b.patronymic) AS patronymic_distance,
+--     (
+--         levenshteinDistanceUTF8(a.firstname, b.firstname)
+--       + levenshteinDistanceUTF8(a.lastname, b.lastname)
+--       + levenshteinDistanceUTF8(a.patronymic, b.patronymic)
+--     ) AS total_distance,
+--     a.records_count AS variant_1_count,
+--     b.records_count AS variant_2_count,
+--     a.records_count + b.records_count AS total_possible_duplicates
+-- FROM names_agg AS a
+-- CROSS JOIN names_agg AS b
+-- WHERE (a.lastname, a.firstname, a.patronymic) < (b.lastname, b.firstname, b.patronymic)
+--   AND levenshteinDistanceUTF8(a.firstname, b.firstname) <= 1
+--   AND levenshteinDistanceUTF8(a.lastname, b.lastname) <= 1
+--   AND levenshteinDistanceUTF8(a.patronymic, b.patronymic) <= 1
+--   AND (
+--       levenshteinDistanceUTF8(a.firstname, b.firstname)
+--     + levenshteinDistanceUTF8(a.lastname, b.lastname)
+--     + levenshteinDistanceUTF8(a.patronymic, b.patronymic)
+--   ) > 0
+-- ORDER BY total_possible_duplicates DESC, total_distance, lastname_variant_1, firstname_variant_1, patronymic_variant_1;
 
 -- 8) Дубликаты по firstname + docType + docNumber (только паспорт)
 SELECT
@@ -463,3 +463,114 @@ INNER JOIN names_agg AS b
 WHERE abs(a.firstname_len - b.firstname_len) <= 3
   AND levenshteinDistanceUTF8(a.firstname, b.firstname) <= 3
 ORDER BY total_possible_duplicates DESC, lastname, patronymic, firstname_variant_1, firstname_variant_2;
+
+-- 13) То же что 6), но с дополнительным условием совпадения docType + docNumber (только паспорт)
+-- Условие: одинаковый паспорт И levenshtein(firstname)+levenshtein(lastname)+levenshtein(patronymic) = 1
+-- Совпадение паспорта переводит CROSS JOIN в INNER JOIN по (docType, docNumber), что резко сокращает число пар.
+WITH fio_doc_agg AS (
+    SELECT
+        p.firstname,
+        p.lastname,
+        p.patronymic,
+        d.docType,
+        d.docNumber,
+        count() AS records_count
+    FROM passengers AS p
+    INNER JOIN passengerDocuments AS d
+        ON p.id = d.passengerId
+    WHERE d.docType = 'passport'
+    GROUP BY
+        p.firstname,
+        p.lastname,
+        p.patronymic,
+        d.docType,
+        d.docNumber
+)
+SELECT
+    a.docType,
+    a.docNumber,
+    a.firstname AS firstname_variant_1,
+    a.lastname AS lastname_variant_1,
+    a.patronymic AS patronymic_variant_1,
+    b.firstname AS firstname_variant_2,
+    b.lastname AS lastname_variant_2,
+    b.patronymic AS patronymic_variant_2,
+    levenshteinDistanceUTF8(a.firstname, b.firstname) AS firstname_distance,
+    levenshteinDistanceUTF8(a.lastname, b.lastname) AS lastname_distance,
+    levenshteinDistanceUTF8(a.patronymic, b.patronymic) AS patronymic_distance,
+    (
+        levenshteinDistanceUTF8(a.firstname, b.firstname)
+      + levenshteinDistanceUTF8(a.lastname, b.lastname)
+      + levenshteinDistanceUTF8(a.patronymic, b.patronymic)
+    ) AS total_distance,
+    a.records_count AS variant_1_count,
+    b.records_count AS variant_2_count,
+    a.records_count + b.records_count AS total_possible_duplicates
+FROM fio_doc_agg AS a
+INNER JOIN fio_doc_agg AS b
+    ON a.docType = b.docType
+    AND a.docNumber = b.docNumber
+    AND (a.lastname, a.firstname, a.patronymic) < (b.lastname, b.firstname, b.patronymic)
+WHERE (
+        levenshteinDistanceUTF8(a.firstname, b.firstname)
+      + levenshteinDistanceUTF8(a.lastname, b.lastname)
+      + levenshteinDistanceUTF8(a.patronymic, b.patronymic)
+      ) = 1
+ORDER BY total_possible_duplicates DESC, total_distance, a.docType, a.docNumber, lastname_variant_1, firstname_variant_1, patronymic_variant_1;
+
+-- 14) То же что 7), но с дополнительным условием совпадения docType + docNumber (только паспорт)
+-- Условие: одинаковый паспорт И в каждом поле ФИО расстояние Левенштейна <= 1, хотя бы одно поле отличается.
+-- Совпадение паспорта переводит CROSS JOIN в INNER JOIN по (docType, docNumber), что резко сокращает число пар.
+WITH fio_doc_agg AS (
+    SELECT
+        p.firstname,
+        p.lastname,
+        p.patronymic,
+        d.docType,
+        d.docNumber,
+        count() AS records_count
+    FROM passengers AS p
+    INNER JOIN passengerDocuments AS d
+        ON p.id = d.passengerId
+    WHERE d.docType = 'passport'
+    GROUP BY
+        p.firstname,
+        p.lastname,
+        p.patronymic,
+        d.docType,
+        d.docNumber
+)
+SELECT
+    a.docType,
+    a.docNumber,
+    a.firstname AS firstname_variant_1,
+    a.lastname AS lastname_variant_1,
+    a.patronymic AS patronymic_variant_1,
+    b.firstname AS firstname_variant_2,
+    b.lastname AS lastname_variant_2,
+    b.patronymic AS patronymic_variant_2,
+    levenshteinDistanceUTF8(a.firstname, b.firstname) AS firstname_distance,
+    levenshteinDistanceUTF8(a.lastname, b.lastname) AS lastname_distance,
+    levenshteinDistanceUTF8(a.patronymic, b.patronymic) AS patronymic_distance,
+    (
+        levenshteinDistanceUTF8(a.firstname, b.firstname)
+      + levenshteinDistanceUTF8(a.lastname, b.lastname)
+      + levenshteinDistanceUTF8(a.patronymic, b.patronymic)
+    ) AS total_distance,
+    a.records_count AS variant_1_count,
+    b.records_count AS variant_2_count,
+    a.records_count + b.records_count AS total_possible_duplicates
+FROM fio_doc_agg AS a
+INNER JOIN fio_doc_agg AS b
+    ON a.docType = b.docType
+    AND a.docNumber = b.docNumber
+    AND (a.lastname, a.firstname, a.patronymic) < (b.lastname, b.firstname, b.patronymic)
+WHERE levenshteinDistanceUTF8(a.firstname, b.firstname) <= 1
+  AND levenshteinDistanceUTF8(a.lastname, b.lastname) <= 1
+  AND levenshteinDistanceUTF8(a.patronymic, b.patronymic) <= 1
+  AND (
+      levenshteinDistanceUTF8(a.firstname, b.firstname)
+    + levenshteinDistanceUTF8(a.lastname, b.lastname)
+    + levenshteinDistanceUTF8(a.patronymic, b.patronymic)
+  ) > 0
+ORDER BY total_possible_duplicates DESC, total_distance, a.docType, a.docNumber, lastname_variant_1, firstname_variant_1, patronymic_variant_1;
