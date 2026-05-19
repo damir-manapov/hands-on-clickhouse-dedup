@@ -136,7 +136,7 @@ function createScenario(rowCount: number): Scenario {
               // High cardinality avoids false-positive docNumber collisions at large row counts.
               name: "docNumber",
               type: "string",
-              generator: { kind: "randomString", length: 5 },
+              generator: { kind: "randomString", length: 5, alphabet: "0123456789" },
             },
           ],
         },
