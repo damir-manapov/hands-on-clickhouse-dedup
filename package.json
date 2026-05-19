@@ -25,7 +25,7 @@
   "dependencies": {
     "@clickhouse/client": "^1.18.3",
     "@mkven/name-dictionaries": "^0.2.0",
-    "@mkven/samples-generation": "^0.5.2"
+    "@mkven/samples-generation": "^0.6.1"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.15",
@@ -37,11 +37,6 @@
   },
   "simple-git-hooks": {
     "pre-commit": "bash all-checks.sh"
-  },
-  "pnpm": {
-    "overrides": {
-      "axios": ">=1.15.0"
-    }
   },
   "packageManager": "pnpm@10.29.3",
   "engines": {

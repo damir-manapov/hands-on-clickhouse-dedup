@@ -18,8 +18,8 @@ importers:
         specifier: ^0.2.0
         version: 0.2.0
       '@mkven/samples-generation':
-        specifier: ^0.5.2
-        version: 0.5.2
+        specifier: ^0.6.1
+        version: 0.6.1
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.3.15
@@ -285,8 +285,8 @@ packages:
     resolution: {integrity: sha512-nKjJG04SL8d8nx82lq/AmXPcgdOUPW7nJKMocqhGeX6w/zAuxI92a4l3yjRWV6t6aME3dUJtiVgeTDfOeIq3Uw==}
     engines: {node: '>=18'}
 
-  '@mkven/samples-generation@0.5.2':
-    resolution: {integrity: sha512-dUH6LUuVh9E9A5yycGeRQGwuTX7cHY1GFR90TfL0FEwkpPaELaw8bzsjO9pMctIb3vcS4ploMEVBBNgKMCHhhA==}
+  '@mkven/samples-generation@0.6.1':
+    resolution: {integrity: sha512-kSB3kQZaqS3TtdH1nx6xIyXvRt9tD/kKj6hp24V91E5m6Qx2yikAQm4PsCgxVMRa+5EHlqDGaXOR2FlvJeRLmQ==}
     hasBin: true
 
   '@napi-rs/wasm-runtime@1.1.4':
@@ -1112,7 +1112,7 @@ snapshots:
 
   '@mkven/name-dictionaries@0.2.0': {}
 
-  '@mkven/samples-generation@0.5.2':
+  '@mkven/samples-generation@0.6.1':
     dependencies:
       '@clickhouse/client': 1.18.5
       '@mkven/name-dictionaries': 0.2.0
